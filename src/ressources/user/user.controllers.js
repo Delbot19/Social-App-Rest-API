@@ -9,6 +9,7 @@ const {
 } = require("./user.validator");
 const verifyUser = require("../../middleware/verifyUser");
 const zodValidator = require("../../middleware/zod.middleware");
+const { checkAuthAndRevocation, addRevokedToken } = require("../../middleware/revokedToken");
 
 class UserController {
   path = "/users";
@@ -21,17 +22,18 @@ class UserController {
   initializeRoutes() {
     //update user
     this.router.put(
-      `${this.path}/:id`,
+      `${this.path}`,
       zodValidator(updateUser),
       verifyUser,
+      checkAuthAndRevocation,
       this.userService.updateById
     );
 
     //delete user
     this.router.delete(
-      `${this.path}/:id`,
-      zodValidator(deleteUser),
+      `${this.path}`,
       verifyUser,
+      checkAuthAndRevocation,
       this.userService.deleteById
     );
 
@@ -47,6 +49,7 @@ class UserController {
       `${this.path}/:id/follow/`,
       zodValidator(followUser),
       verifyUser,
+      checkAuthAndRevocation,
       this.userService.followById
     );
 
@@ -55,6 +58,7 @@ class UserController {
       `${this.path}/:id/unfollow/`,
       zodValidator(unfollowUser),
       verifyUser,
+      checkAuthAndRevocation,
       this.userService.unfollowById
     );
   }

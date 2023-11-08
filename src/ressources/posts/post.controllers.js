@@ -9,6 +9,7 @@ const {
 } = require("./post.validator");
 const verifyUser = require("../../middleware/verifyUser");
 const zodValidator = require("../../middleware/zod.middleware");
+const { checkAuthAndRevocation, addRevokedToken } = require("../../middleware/revokedToken");
 
 class PostController {
   path = "/posts";
@@ -25,6 +26,7 @@ class PostController {
       `${this.path}/`,
       zodValidator(createPost),
       verifyUser,
+      checkAuthAndRevocation,
       this.postService.createPost
     )
 
@@ -33,6 +35,7 @@ class PostController {
       `${this.path}/:id`,
       zodValidator(updatePost),
       verifyUser,
+      checkAuthAndRevocation,
       this.postService.updateById
     )
 
@@ -41,6 +44,7 @@ class PostController {
       `${this.path}/:id`,
       zodValidator(deletePost),
       verifyUser,
+      checkAuthAndRevocation,
       this.postService.deleteById
     )
 
@@ -49,6 +53,7 @@ class PostController {
       `${this.path}/:id/like/`,
       zodValidator(likePost),
       verifyUser,
+      checkAuthAndRevocation,
       this.postService.likeById
     )
 
@@ -61,7 +66,9 @@ class PostController {
 
     //get timeline post
     this.router.get(
-      `${this.path}/timeline`,
+      `${this.path}/timeline/all/`,
+      verifyUser,
+      checkAuthAndRevocation,
       this.postService.getTimeline
     )
   }

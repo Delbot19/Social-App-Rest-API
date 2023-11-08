@@ -1,6 +1,9 @@
+const logger = require("../../config/logger");
+const Token = require("../../models/token");
 const User = require("../../models/user");
 const { hashPassword } = require("../../utils/auth.util");
 const { jsonResponse } = require("../../utils/jsonResponse.util");
+const { checkAuthAndRevocation, addRevokedToken } = require("../../middleware/revokedToken");
 
 class UserService {
 
@@ -18,9 +21,10 @@ class UserService {
       }
 
       try {
-        const user = await User.findByIdAndUpdate(req.params.id, {
-          $set: req.body
-        })
+        logger.info()
+        const user = await User.findByIdAndUpdate(session.id, {
+          $set: req.body,
+        }, { new: true })
         return res.json(
           jsonResponse(
             JSON.stringify(user),
@@ -41,7 +45,12 @@ class UserService {
     const session = req.user;
     if (session) {
       try {
-        await User.findByIdAndDelete(req.params.id);
+        const user = await User.findById(session.id)
+        if (user == null) {
+          return res.json(jsonResponse("Utilisateur introuvable", { status: 404 }))
+        }
+        addRevokedToken(req.headers.authorization)
+        await User.findByIdAndDelete(session.id);
         return res.json(jsonResponse(undefined, { status: 200 }, "Account has been deleted!"))
       } catch (err) {
         return res.json(jsonResponse("Internal Server Error", { status: 500 }))
@@ -69,12 +78,12 @@ class UserService {
     if (session) {
       if (session.id != req.params.id) {
         try {
-          const user = User.findById(req.params.id)
-          const currentUser = User.findById(session.id)
+          const user = await User.findById(req.params.id)
+          const currentUser = await User.findById(session.id)
 
           if (!user.followers.includes(session.id)) {
             await user.updateOne({ $push: { followers: session.id } })
-            await currentUser.updateOne({ $push: { followings: req.params.id } })
+            await currentUser.updateOne({ $push: { followings: req.params.id } }, { new: true })
             return res.json(jsonResponse("User has been followed", { status: 200 }))
           } else {
             res.json(jsonResponse("You already follow this user", { status: 403 }))
@@ -98,8 +107,8 @@ class UserService {
     if (session) {
       if (session.id != req.params.id) {
         try {
-          const user = User.findById(req.params.id)
-          const currentUser = User.findById(session.id)
+          const user = await User.findById(req.params.id)
+          const currentUser = await User.findById(session.id)
 
           if (user.followers.includes(session.id)) {
             await user.updateOne({ $pull: { followers: session.id } })

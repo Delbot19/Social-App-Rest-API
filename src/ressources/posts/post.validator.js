@@ -2,19 +2,16 @@ const z = require('zod').z;
 
 const createPost = z.object({
   body: z.object({
-    userId: z.string(),
     desc: z.string(),
-    img: z.string(),
-    likes: z.array()
+    img: z.string().optional(),
+    likes: z.array().optional(),
   })
 })
 
 const updatePost = z.object({
   body: z.object({
-    userId: z.string().optional(),
     desc: z.string().optional(),
     img: z.string().optional(),
-    likes: z.array().optional(),
   }),
   params: z.object({
     id: z.string()

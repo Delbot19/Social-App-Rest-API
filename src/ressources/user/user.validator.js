@@ -5,15 +5,6 @@ const updateUser = z.object({
     username: z.string().optional(),
     email: z.string().optional(),
     password: z.string().optional(),
-  }),
-  params: z.object({
-    id: z.string()
-  })
-});
-
-const deleteUser = z.object({
-  params: z.object({
-    id: z.string()
   })
 });
 
@@ -35,4 +26,4 @@ const unfollowUser = z.object({
   })
 });
 
-module.exports = { getUser, updateUser, deleteUser, followUser, unfollowUser }
+module.exports = { getUser, updateUser, followUser, unfollowUser }
